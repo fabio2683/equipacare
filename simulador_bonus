@@ -1,0 +1,1231 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador RVV &mdash; Lideran&ccedil;a Equipacare 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#2D4A68;--navy-dark:#1E3350;--steel:#4A7A9B;
+  --teal:#3BB8C0;--teal-lt:#E6F7F8;
+  --lime:#B8CC10;--lime-lt:#F4F7D6;
+  --bg:#F2F5F8;--white:#FFF;
+  --text:#1E2D3D;--muted:#5A7080;--border:#D8E1EA;
+  --red:#D94F3D;--red-lt:#FCECEA;
+  --orange:#E8863A;--orange-lt:#FEF0E6;
+  --green:#3BAA5E;--green-dk:#2A8048;--green-lt:#E6F4ED;
+  --shadow:0 2px 12px rgba(45,74,104,.12);
+  --r:10px;--rs:6px;
+}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.45;}
+
+/* HEADER */
+.hdr{background:var(--navy);padding:10px 22px;display:flex;align-items:center;gap:14px;box-shadow:0 3px 10px rgba(0,0,0,.3);}
+.hdr img{height:38px;background:#fff;border-radius:4px;padding:3px;}
+.hdr-info{flex:1;}
+.hdr h1{color:#fff;font-size:17px;font-weight:600;}
+.hdr p{color:rgba(255,255,255,.6);font-size:11px;margin-top:1px;}
+.hdr-badge{background:var(--lime);color:var(--navy-dark);font-size:10px;font-weight:800;padding:4px 12px;border-radius:20px;letter-spacing:.8px;text-transform:uppercase;}
+.hdr-btns{display:flex;gap:8px;}
+.btn-hdr{padding:7px 14px;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:opacity .15s;}
+.btn-hdr:hover{opacity:.85;}
+.btn-exp{background:var(--lime);color:var(--navy-dark);}
+.btn-imp{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);}
+
+/* TABS */
+.nav{background:var(--navy-dark);display:flex;padding:0 22px;gap:2px;overflow-x:auto;}
+.nav button{background:none;border:none;color:rgba(255,255,255,.55);font-size:13px;font-weight:500;padding:13px 18px;cursor:pointer;border-bottom:3px solid transparent;transition:all .18s;white-space:nowrap;}
+.nav button:hover{color:#fff;}
+.nav button.act{color:#fff;border-bottom-color:var(--lime);}
+
+/* LAYOUT */
+.pane{display:none;padding:16px 22px;max-width:1320px;margin:0 auto;}
+.pane.act{display:block;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+
+/* CARDS */
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;}
+.ch{padding:9px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;color:#fff;}
+.ch.navy{background:var(--navy);}
+.ch.steel{background:var(--steel);}
+.ch.teal{background:var(--teal);}
+.ch.lime{background:var(--lime);color:var(--navy-dark);}
+.cb{padding:14px 16px;}
+
+/* INPUTS */
+.ig{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+.ig label{color:var(--muted);font-size:12px;min-width:220px;flex-shrink:0;}
+.ig input[type=number]{width:88px;padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);}
+.ig input[type=number]:focus{outline:none;border-color:var(--teal);}
+.ig .unit{color:var(--muted);font-size:12px;}
+.ig select{padding:5px 8px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;color:var(--text);}
+.sec-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:14px 0 8px;}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{background:var(--bg);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.4px;padding:9px 11px;text-align:left;border-bottom:2px solid var(--border);}
+.tbl td{padding:7px 11px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tbody tr:hover>td{background:#F7FAFB;}
+.tbl input[type=number]{width:70px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;}
+.tbl input[type=number]:focus{outline:none;border-color:var(--teal);}
+.tbl-wrap{overflow-y:auto;max-height:420px;border-radius:0 0 var(--r) var(--r);}
+.tbl-wrap .tbl thead th{position:sticky;top:0;z-index:2;background:#E8EDF2;box-shadow:0 1px 0 var(--border);}
+
+/* PILLS */
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;}
+.p-green{background:var(--green-lt);color:var(--green-dk);}
+.p-orange{background:var(--orange-lt);color:var(--orange);}
+.p-red{background:var(--red-lt);color:var(--red);}
+.p-grey{background:var(--bg);color:var(--muted);}
+.p-navy{background:#E8EDF4;color:var(--navy);}
+
+/* POOL METRICS */
+.mbox-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:20px;}
+.mbox{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);padding:11px 14px;border-left:4px solid var(--teal);}
+.mbox.navy{border-left-color:var(--navy);}
+.mbox.lime{border-left-color:var(--lime);}
+.mbox.red{border-left-color:var(--red);}
+.mbox.steel{border-left-color:var(--steel);}
+.mbox .mv{font-size:18px;font-weight:700;color:var(--navy);}
+.mbox .ml{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+.bar{height:6px;border-radius:4px;margin-top:5px;transition:width .3s;}
+
+/* INFO / WARN BOXES */
+.ibox{background:var(--teal-lt);border-left:4px solid var(--teal);border-radius:0 var(--rs) var(--rs) 0;padding:10px 14px;margin:10px 0;font-size:13px;color:var(--navy);}
+.wbox{background:#FEF9E7;border-left:4px solid #F0C040;border-radius:0 var(--rs) var(--rs) 0;padding:10px 14px;margin:10px 0;font-size:13px;color:#5A4A00;}
+.rbox{background:var(--red-lt);border-left:4px solid var(--red);border-radius:0 var(--rs) var(--rs) 0;padding:10px 14px;margin:10px 0;font-size:13px;color:var(--red);}
+.fbox{background:var(--lime-lt);border-left:4px solid var(--lime);border-radius:0 var(--rs) var(--rs) 0;padding:10px 14px;margin:10px 0;font-size:13px;color:var(--navy-dark);}
+
+/* FLOW STEPS */
+.flow{display:flex;margin:10px 0;}
+.fst{flex:1;background:var(--white);border:1px solid var(--border);padding:10px;position:relative;}
+.fst:first-child{border-radius:var(--r) 0 0 var(--r);}
+.fst:last-child{border-radius:0 var(--r) var(--r) 0;}
+.fst+.fst::before{content:'›';position:absolute;left:-12px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--teal);background:#fff;padding:0 2px;}
+.fst .num{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-bottom:7px;}
+.fst h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px;}
+.fst p{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* SCALE VISUAL */
+.scale-vis{display:flex;border-radius:var(--rs);overflow:hidden;margin:12px 0;}
+.sv{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;font-weight:600;text-align:center;padding:10px 5px;line-height:1.4;}
+.sv.a{background:var(--red-lt);color:var(--red);}
+.sv.b{background:var(--orange-lt);color:var(--orange);}
+.sv.c{background:var(--green-lt);color:var(--green);}
+.sv.d{background:#D9F0E3;color:var(--green-dk);}
+.sv .sv-sub{font-size:10px;font-weight:400;opacity:.8;margin-top:3px;}
+
+/* KPI GROUP CARDS */
+.kpig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:11px;}
+.kpig{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;}
+.kpig-hdr{padding:10px 14px;font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:space-between;}
+.kpig-hdr.navy{background:var(--navy);}
+.kpig-hdr.steel{background:var(--steel);}
+.kpig-hdr.teal{background:var(--teal);}
+.kpig-mult{font-size:18px;font-weight:800;}
+.kpig-body{padding:12px;}
+.kpi-row{margin-bottom:10px;}
+.kpi-lbl{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text);margin-bottom:4px;flex-wrap:wrap;}
+.kpi-peso{color:var(--muted);font-size:11px;}
+.gate-tag{font-size:10px;background:var(--red-lt);color:var(--red);border-radius:3px;padding:1px 5px;font-weight:700;}
+.kpi-inp-row{display:flex;align-items:center;gap:8px;}
+.kpi-inp-row input[type=number]{width:80px;padding:5px 8px;border:1px solid var(--border);border-radius:4px;font-size:13px;text-align:right;}
+.kpi-inp-row input[type=number]:focus{outline:none;border-color:var(--teal);}
+.ab{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.ab-z{background:var(--red-lt);color:var(--red);}
+.ab-l{background:var(--orange-lt);color:var(--orange);}
+.ab-o{background:var(--green-lt);color:var(--green);}
+.ab-m{background:#D9F0E3;color:var(--green-dk);}
+.kpig-result{margin-top:9px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.kpig-result .krl{font-size:11px;color:var(--muted);}
+.kpig-result .krv{font-size:18px;font-weight:700;}
+.gate-warn{background:var(--red-lt);border-radius:var(--rs);padding:5px 9px;font-size:11px;color:var(--red);font-weight:600;margin-top:6px;display:none;}
+
+/* ELEGÍVEIS / RESULTADO TABLE */
+.exp-btn{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--steel);color:var(--steel);font-size:14px;font-weight:700;background:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.exp-btn.open{background:var(--navy);border-color:var(--navy);color:#fff;}
+.row-exp{cursor:pointer;}
+.row-exp:hover>td{background:#EEF4F9 !important;}
+.det-row{display:none;}
+.det-row.open{display:table-row;}
+.det-cell{padding:0 !important;border-bottom:2px solid var(--teal) !important;}
+.det-inner{padding:13px 13px 13px 42px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:11px;}
+
+/* BLOCK CARDS (DETAIL) */
+.blk{background:var(--white);border:1px solid var(--border);border-radius:var(--rs);padding:11px;position:relative;}
+.blk.zeroed{border-color:var(--red);background:#FEF8F8;}
+.blk-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:7px;}
+.blk-w{position:absolute;top:9px;right:9px;font-size:11px;color:var(--muted);}
+.blk-kpi{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;font-size:12px;}
+.blk-res{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.blk-coins{font-weight:700;color:var(--navy);font-size:15px;}
+.blk-mult-tag{font-size:11px;background:var(--bg);padding:2px 7px;border-radius:10px;color:var(--steel);}
+.blk-total{grid-column:1/-1;background:var(--teal-lt);border-radius:var(--rs);padding:11px;display:flex;justify-content:space-between;align-items:center;}
+
+/* CARTEIRA CARDS */
+.cart-card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;}
+.cart-hdr{padding:11px 16px;background:var(--steel);color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.cart-body{padding:14px;}
+.cart-summary{font-size:12px;color:var(--muted);margin:8px 0 12px;}
+.cart-summary strong{color:var(--navy);}
+.btn-add{padding:6px 14px;background:var(--teal);color:#fff;border:none;border-radius:var(--rs);font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;}
+.btn-add:hover{background:#2FA8B0;}
+.btn-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:15px;padding:2px 5px;}
+
+/* MISC */
+hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
+.c-green{color:var(--green-dk);}
+.c-orange{color:var(--orange);}
+.c-red{color:var(--red);}
+.c-navy{color:var(--navy);}
+.fw7{font-weight:700;}
+.mono{font-family:monospace;}
+
+@media(max-width:900px){
+  .pane{padding:12px;}
+  .g2,.g3,.g4{grid-template-columns:1fr;}
+  .flow{flex-direction:column;}
+  .fst+.fst::before{display:none;}
+  .fst:first-child,.fst:last-child{border-radius:0;}
+  .fst{border-radius:0;}
+  .hdr-btns{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <img src="data:image/jpeg;base64,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" alt="Equipacare">
+  <div class="hdr-info">
+    <h1>Simulador de Remunera&ccedil;&atilde;o Vari&aacute;vel</h1>
+    <p>Programa de B&ocirc;nus da Lideran&ccedil;a &middot; Apura&ccedil;&atilde;o Anual 2026</p>
+  </div>
+  <div class="hdr-badge">Simula&ccedil;&atilde;o</div>
+  <div class="hdr-btns">
+    <button class="btn-hdr btn-imp" onclick="importExcel()">&#8593; Importar Excel</button>
+    <button class="btn-hdr btn-exp" onclick="exportExcel()">&#8595; Exportar Excel</button>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav class="nav">
+  <button class="act" onclick="showTab('metodologia',this)">Metodologia</button>
+  <button onclick="showTab('parametros',this)">Par&acirc;metros</button>
+  <button onclick="showTab('atingimento',this)">Atingimento</button>
+  <button onclick="showTab('resultado',this)">Eleg&iacute;veis &amp; Resultado</button>
+</nav>
+
+<!-- ═══ TAB 1 · METODOLOGIA ═══ -->
+<div id="tab-metodologia" class="pane act">
+
+  <div class="card">
+    <div class="ch navy">Como funciona o Programa de B&ocirc;nus &mdash; Vis&atilde;o Executiva</div>
+    <div class="cb">
+      <div class="flow">
+        <div class="fst">
+          <div class="num">1</div>
+          <h4>Gatilho: LL M&iacute;nimo</h4>
+          <p>O <strong>Lucro L&iacute;quido 2026</strong> precisa superar o valor m&iacute;nimo esperado pelos acionistas. Abaixo desse patamar, nenhum b&ocirc;nus &eacute; gerado.</p>
+        </div>
+        <div class="fst">
+          <div class="num">2</div>
+          <h4>Pool: Delta &times; % Distribui&ccedil;&atilde;o</h4>
+          <p>Superado o gatilho, um <strong>% configur&aacute;vel do delta</strong> (LL Realizado &minus; LL M&iacute;nimo) &eacute; destinado ao pool de b&ocirc;nus. <em>Valores inseridos em R$&nbsp;Milh&otilde;es.</em></p>
+        </div>
+        <div class="fst">
+          <div class="num">3</div>
+          <h4>Moedas: Saldo-alvo ajustado por KPIs</h4>
+          <p>Cada eleg&iacute;vel parte de um <strong>saldo-alvo de moedas</strong>. O atingimento dos KPIs, bloco a bloco, ajusta este saldo para cima ou para baixo.</p>
+        </div>
+        <div class="fst">
+          <div class="num">4</div>
+          <h4>Pagamento: (moedas pessoa / total moedas) &times; pool</h4>
+          <p>O pool &eacute; sempre distribu&iacute;do integralmente. Se algu&eacute;m n&atilde;o performa e perde moedas, quem performou melhor recebe proporcionalmente mais &mdash; sem sobra no caixa.</p>
+        </div>
+      </div>
+      <div class="ibox"><strong>Pool:</strong> (LL Realizado &minus; LL M&iacute;nimo) &times; % Distribui&ccedil;&atilde;o &nbsp;|&nbsp; <strong>Pagamento:</strong> (Moedas Pessoa &divide; Moedas Total) &times; Pool &nbsp;<span style="opacity:.7;font-size:12px;">(LL em R$&nbsp;Mi)</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch steel">Escala de Atingimento</div>
+    <div class="cb">
+      <div class="scale-vis">
+        <div class="sv a">&#10060; Abaixo m&iacute;n<div class="sv-sub">(&lt; 80%)<br>&times;0,0</div></div>
+        <div class="sv b">&#9888; M&iacute;n &rarr; Alvo<div class="sv-sub">(80%&rarr;100%)<br>&times;0,8&rarr;&times;1,0</div></div>
+        <div class="sv c">&#10003; Alvo &rarr; M&aacute;x<div class="sv-sub">(100%&rarr;120%)<br>&times;1,0&rarr;&times;1,2</div></div>
+        <div class="sv d">&#128640; Acima m&aacute;x<div class="sv-sub">(&gt; 120%)<br>cap &times;1,2</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--muted);">Valores ilustrativos com par&acirc;metros padr&atilde;o. Os limiares e multiplicadores s&atilde;o configur&aacute;veis na aba Par&acirc;metros.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch teal">Estrutura de Blocos e Gatilhos</div>
+    <div class="cb">
+      <div class="g3">
+        <div class="blk">
+          <div class="blk-title">Bloco Corporativo</div>
+          <p style="font-size:12px;color:var(--muted);">KPIs de empresa (Faturamento + EBITDA). Aplicado a todos os eleg&iacute;veis com peso vari&aacute;vel por n&iacute;vel (20% a 100%).</p>
+          <div class="ibox" style="margin-top:8px;font-size:12px;"><strong>Gatilho EBITDA:</strong> se EBITDA abaixo do resultado m&iacute;nimo, bloco corporativo = 0 para todos.</div>
+        </div>
+        <div class="blk">
+          <div class="blk-title">Bloco de &Aacute;rea</div>
+          <p style="font-size:12px;color:var(--muted);">KPIs da unidade de neg&oacute;cio (Adm., Comercial, GQM, ATE, ECP, EIH). Cada escopo &eacute; calculado de forma independente. Quem tem dois escopos, tem o peso dividido por &aacute;rea.</p>
+          <div class="ibox" style="margin-top:8px;font-size:12px;"><strong>Gatilho por escopo:</strong> zera apenas aquela por&ccedil;&atilde;o.</div>
+        </div>
+        <div class="blk">
+          <div class="blk-title">Bloco de Carteira (GQM e ATE)</div>
+          <p style="font-size:12px;color:var(--muted);">Para Gerentes Regionais com carteira de contratos GQM e ATE. Cada contrato avaliado individualmente por Satisfa&ccedil;&atilde;o (gate), Resultado e Conformidade.</p>
+          <div class="ibox" style="margin-top:8px;font-size:12px;"><strong>Gate de satisfa&ccedil;&atilde;o:</strong> contrato reprovado gera 0 moedas para aquele contrato.</div>
+        </div>
+      </div>
+      <div class="wbox">
+        <strong>Importante:</strong> O gatilho zera apenas aquele bloco, n&atilde;o o pagamento completo.<br><em>Ex: Se margem ECP for abaixo do m&iacute;nimo, Ger. Geral ECP perde 80% das suas moedas (peso do bloco &aacute;rea), mas mant&eacute;m os 20% do bloco corporativo.</em>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch navy">L&oacute;gica de Apura&ccedil;&atilde;o da Carteira (GQM e ATE)</div>
+    <div class="cb">
+      <div class="flow">
+        <div class="fst">
+          <div class="num">1</div>
+          <h4>Fator de Contratos</h4>
+          <p>A gest&atilde;o define as <strong>Moedas Ajustadas</strong> por pessoa (padr&atilde;o: moedas-alvo &times; peso carteira), considerando churn de contratos.</p>
+        </div>
+        <div class="fst">
+          <div class="num">2</div>
+          <h4>Contratos Ativos Finais</h4>
+          <p>Lista de contratos GQM e ATE vinculados &agrave;quele gerente. As moedas ajustadas s&atilde;o divididas igualmente entre os contratos.</p>
+        </div>
+        <div class="fst">
+          <div class="num">3</div>
+          <h4>Gate de Satisfa&ccedil;&atilde;o</h4>
+          <p>Se a nota de Satisfa&ccedil;&atilde;o do contrato estiver abaixo do resultado m&iacute;nimo &rarr; moedas daquele contrato = 0 (sem compensa&ccedil;&atilde;o).</p>
+        </div>
+        <div class="fst">
+          <div class="num">4</div>
+          <h4>Resultado e Conformidade</h4>
+          <p>Moedas = base &times; (50% &times; mult_Resultado + 50% &times; mult_Conformidade). Pesos configur&aacute;veis.</p>
+        </div>
+      </div>
+      <div class="fbox">
+        <strong>F&oacute;rmula por contrato:</strong> Moedas = (Moedas Ajustadas &divide; N) &times; (50% &times; mult_Resultado + 50% &times; mult_Conformidade). Se satisfa&ccedil;&atilde;o reprovada: Moedas = 0
+      </div>
+      <div class="ibox" style="margin-top:10px;font-size:12px;">
+        <strong>Exemplo:</strong> Regional com moedas-alvo de carteira = 300 (moedas-alvo &times; peso carteira). Tinha 10 contratos iniciais, perdeu 2 por churn &rarr; gest&atilde;o ajusta para <strong>240 moedas</strong> (300 &times; 8/10, refletindo a redu&ccedil;&atilde;o). Ao final do ano, tem 9 contratos ativos &rarr; base = 240 &divide; 9 = <strong>26,7 moedas/contrato</strong>.<br>
+        &bull; <em>Contrato A</em>: Satisfa&ccedil;&atilde;o 95% &#10003; &nbsp;| Resultado 110%, Conformidade 100% &rarr; Moedas = 26,7 &times; (50%&times;1,10 + 50%&times;1,00) = 26,7 &times; 1,05 = <strong>28,0</strong><br>
+        &bull; <em>Contrato B</em>: Satisfa&ccedil;&atilde;o 75% &#10007; (abaixo do m&iacute;nimo) &rarr; Moedas = <strong>0</strong>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-metodologia -->
+
+<!-- ═══ TAB 2 · PARÂMETROS ═══ -->
+<div id="tab-parametros" class="pane">
+
+  <div class="g2">
+    <!-- Pool Config -->
+    <div class="card">
+      <div class="ch navy">Configura&ccedil;&atilde;o do Pool</div>
+      <div class="cb">
+        <div class="ig"><label>LL M&iacute;nimo (R$&nbsp;M)</label><input type="number" id="p_llMin" value="5" step="0.1" oninput="recalc()"><span class="unit">R$&nbsp;M</span></div>
+        <div class="ig"><label>LL Realizado (R$&nbsp;M)</label><input type="number" id="p_llReal" value="7" step="0.1" oninput="recalc()"><span class="unit">R$&nbsp;M</span></div>
+        <div class="ig"><label>% Distribui&ccedil;&atilde;o</label><input type="number" id="p_dist" value="15" step="1" min="0" max="100" oninput="recalc()"><span class="unit">%</span></div>
+        <hr class="div">
+        <div class="ibox" id="pool-display">Pool calculado: <strong id="pool-val">R$&nbsp;300.000</strong></div>
+      </div>
+    </div>
+
+    <!-- Scale Config -->
+    <div class="card">
+      <div class="ch navy">Escala de Atingimento</div>
+      <div class="cb">
+        <div class="ig"><label>% Resultado M&iacute;nimo (gatilho de ativa&ccedil;&atilde;o)</label><input type="number" id="p_patMin" value="80" step="1" min="0" max="100" oninput="recalc()"><span class="unit">%</span></div>
+        <div class="ig"><label>% Resultado M&aacute;ximo (teto de atingimento)</label><input type="number" id="p_patMax" value="120" step="1" min="100" max="200" oninput="recalc()"><span class="unit">%</span></div>
+        <div class="ig"><label>Multiplicador no M&iacute;nimo</label><input type="number" id="p_multMin" value="0.8" step="0.05" min="0" max="1" oninput="recalc()"><span class="unit">&times;</span></div>
+        <div class="ig"><label>Multiplicador no M&aacute;ximo</label><input type="number" id="p_multMax" value="1.2" step="0.05" min="1" oninput="recalc()"><span class="unit">&times;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Elegíveis Config Table -->
+  <div class="card">
+    <div class="ch teal">Configura&ccedil;&atilde;o dos Eleg&iacute;veis</div>
+    <div class="tbl-wrap">
+      <table class="tbl" id="elig-tbl">
+        <thead><tr>
+          <th>Nome</th><th>Cargo</th>
+          <th>Moedas-Alvo</th><th>Peso Corp %</th><th>Peso &Aacute;rea %</th>
+          <th>Escopo &Aacute;rea</th><th>Peso Cart %</th>
+        </tr></thead>
+        <tbody id="elig-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- KPI Weights & Gates -->
+  <div class="card">
+    <div class="ch navy">Pesos e Gatilhos dos KPIs por Grupo</div>
+    <div class="cb" id="kpi-params-body"></div>
+  </div>
+
+  <!-- Area Split Config -->
+  <div class="card" id="area-split-card">
+    <div class="ch steel">Divis&atilde;o de Escopo de &Aacute;rea (multi-escopo)</div>
+    <div class="cb" id="area-split-body" style="padding:12px 18px;"></div>
+  </div>
+
+  <!-- Carteira Weights -->
+  <div class="card">
+    <div class="ch steel">Pesos da Carteira (GQM e ATE)</div>
+    <div class="cb">
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+        <div class="ig" style="margin:0"><label>Peso Resultado (%)</label><input type="number" id="p_wRes" value="50" step="5" min="0" max="100" oninput="recalc()"><span class="unit">%</span></div>
+        <div class="ig" style="margin:0"><label>Peso Conformidade (%)</label><input type="number" id="p_wCon" value="50" step="5" min="0" max="100" oninput="recalc()"><span class="unit">%</span></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /tab-parametros -->
+
+<!-- ═══ TAB 3 · ATINGIMENTO ═══ -->
+<div id="tab-atingimento" class="pane">
+
+  <div class="sec-lbl">Indicadores Corporativos</div>
+  <div class="kpig-grid" id="kpig-corp"></div>
+
+  <div class="sec-lbl" style="margin-top:18px;">Indicadores de &Aacute;rea</div>
+  <div class="kpig-grid" id="kpig-area"></div>
+
+  <div class="sec-lbl" style="margin-top:18px;">Carteiras dos Gerentes Regionais (GQM e ATE)</div>
+  <div id="cart-section"></div>
+
+</div><!-- /tab-atingimento -->
+
+<!-- ═══ TAB 4 · ELEGÍVEIS & RESULTADO ═══ -->
+<div id="tab-resultado" class="pane">
+
+  <div class="mbox-row" id="res-metrics"></div>
+
+  <div class="card">
+    <div class="ch navy">Resultado por Eleg&iacute;vel</div>
+    <div class="tbl-wrap" style="max-height:600px;">
+      <table class="tbl" id="res-tbl">
+        <thead><tr>
+          <th style="width:30px;"></th>
+          <th>Nome</th><th>Cargo</th>
+          <th>Moedas Alvo</th><th>Moedas Result.</th>
+          <th>&Delta; vs Alvo</th><th>% Pool</th>
+          <th>Pagamento Est.</th><th style="width:120px;">Propor&ccedil;&atilde;o</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody id="res-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /tab-resultado -->
+
+<!-- Hidden file input for import -->
+<input type="file" id="file-input" accept=".xlsx,.xls" style="display:none" onchange="handleImport(event)">
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+let E = [
+  {id:'g_xavier',    nome:'G. Xavier',    atu:'Presid\u00eancia',     cargo:'Dir. Geral',           m:1000,wC:1.0,wA:0,  sA:[],                        areaSplit:{},                   wK:0},
+  {id:'f_fogaca',    nome:'F. Foga\u00e7a',   atu:'Adm. Financeiro', cargo:'Dir. Adm.',             m:800, wC:0.7,wA:0.3,sA:['Administrativo'],         areaSplit:{Administrativo:1},   wK:0},
+  {id:'daniele',     nome:'Daniele',      atu:'Comercial',        cargo:'Dir. Comercial',        m:800, wC:0.7,wA:0.3,sA:['Comercial'],               areaSplit:{Comercial:1},        wK:0},
+  {id:'rodrigo',     nome:'Rodrigo',      atu:'Servi\u00e7os',        cargo:'Dir. Servi\u00e7os',        m:800, wC:0.2,wA:0.8,sA:['GQM','ATE'],             areaSplit:{GQM:0.5,ATE:0.5},    wK:0},
+  {id:'sergio',      nome:'Sergio',       atu:'Projetos/Infra',   cargo:'Dir. Projetos',         m:800, wC:0.2,wA:0.8,sA:['ECP','EIH'],             areaSplit:{ECP:0.5,EIH:0.5},    wK:0},
+  {id:'claudio',     nome:'Claudio',      atu:'Servi\u00e7os',        cargo:'Ger. Nacional',         m:600, wC:0.2,wA:0.8,sA:['GQM','ATE'],             areaSplit:{GQM:0.5,ATE:0.5},    wK:0},
+  {id:'francielen',  nome:'Francielen',   atu:'Projetos',         cargo:'Ger. Ger. Projetos',    m:600, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'bruno',       nome:'Bruno',        atu:'Infra',            cargo:'Ger. Ger. Infra',       m:400, wC:0.2,wA:0.8,sA:['EIH'],                   areaSplit:{EIH:1},              wK:0},
+  {id:'homero',      nome:'Homero',       atu:'Servi\u00e7os',        cargo:'Ger. Regional II',      m:400, wC:0.2,wA:0.2,sA:['ECP','GQM'],             areaSplit:{ECP:0.5,GQM:0.5},    wK:0.6},
+  {id:'j_alcantara', nome:'J. Alc\u00e2ntara', atu:'Servi\u00e7os',   cargo:'Ger. Regional II',      m:400, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'hugo',        nome:'Hugo',         atu:'Servi\u00e7os',        cargo:'Ger. Regional II',      m:400, wC:0.2,wA:0.2,sA:['ECP','GQM'],             areaSplit:{ECP:0.5,GQM:0.5},    wK:0.6},
+  {id:'thayane',     nome:'Thayane',      atu:'Servi\u00e7os',        cargo:'Ger. Regional I',       m:300, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'lucas',       nome:'Lucas',        atu:'Servi\u00e7os',        cargo:'Ger. Regional I',       m:300, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'fabio_sales', nome:'Fabio Sales',  atu:'Projetos',         cargo:'Espec. Proj. III',      m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'vinicius',    nome:'Vinicius',     atu:'Projetos',         cargo:'Espec. Proj. III',      m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'sarah',       nome:'Sarah',        atu:'Projetos',         cargo:'Espec. Proj. I',        m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'rafael_ruiz', nome:'Rafael Ruiz',  atu:'Projetos',         cargo:'L\u00edder Projetos',       m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'leandro',     nome:'Leandro',      atu:'ATE',              cargo:'Superv. ATE',           m:200, wC:0.2,wA:0.8,sA:['ATE'],                   areaSplit:{ATE:1},              wK:0},
+  {id:'elaine',      nome:'Elaine',       atu:'RH',               cargo:'Superv. RH',            m:200, wC:0.7,wA:0.3,sA:['Administrativo'],         areaSplit:{Administrativo:1},   wK:0},
+];
+
+let G = {
+  'Corporativo':    {lbl:'Corporativo',    color:'navy',  kpis:[{id:'c_fat',nome:'Faturamento Equipacare',p:.5,g:false},{id:'c_ebt',nome:'EBITDA Equipacare',p:.5,g:true}]},
+  'Administrativo': {lbl:'Administrativo', color:'steel', kpis:[{id:'a_adm',nome:'Despesas Adm. % ROL',p:.7,g:true},{id:'a_sat',nome:'Satisfa\u00e7\u00e3o do Colaborador',p:.3,g:false}]},
+  'Comercial':      {lbl:'Comercial',      color:'steel', kpis:[{id:'a_vnd',nome:'Vendas Equipacare',p:.7,g:true},{id:'a_roi',nome:'ROI: ARR / CAC',p:.3,g:false}]},
+  'GQM':            {lbl:'GQM',            color:'teal',  kpis:[{id:'a_gqm_f',nome:'Faturamento GQM',p:.5,g:false},{id:'a_gqm_m',nome:'Margem de Contrib. GQM',p:.5,g:true}]},
+  'ATE':            {lbl:'ATE',            color:'teal',  kpis:[{id:'a_ate_f',nome:'Faturamento ATE',p:.5,g:false},{id:'a_ate_m',nome:'Margem de Contrib. ATE',p:.5,g:true}]},
+  'ECP':            {lbl:'ECP',            color:'teal',  kpis:[{id:'a_ecp_f',nome:'Faturamento ECP',p:.5,g:true},{id:'a_ecp_m',nome:'Margem de Contrib. ECP',p:.5,g:true}]},
+  'EIH':            {lbl:'EIH',            color:'teal',  kpis:[{id:'a_eih_f',nome:'Faturamento EIH',p:.5,g:true},{id:'a_eih_m',nome:'Margem de Contrib. EIH',p:.5,g:true}]},
+};
+
+// KPI atingimento store (id -> value 0-150)
+let KPI = {};
+// Carteira data: CD[personId] = {moedasAjustadas, contratos:[{nome,satA,resA,conA}]}
+let CD = {};
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+function n(id){ return parseFloat(document.getElementById(id)?.value)||0; }
+function fBRL(v){ return 'R$\u00a0'+Math.round(v).toLocaleString('pt-BR'); }
+function fCoins(v){ return Math.round(v).toLocaleString('pt-BR'); }
+function fMult(v){ return '\u00d7'+v.toFixed(2).replace('.',','); }
+function fPct(v){ return (v*100).toFixed(1).replace('.',',')+'%'; }
+
+function getScale(){
+  return {
+    patMin: n('p_patMin')/100 || 0.8,
+    patMax: n('p_patMax')/100 || 1.2,
+    multMin: n('p_multMin') || 0.8,
+    multMax: n('p_multMax') || 1.2,
+  };
+}
+
+function kpiMult(ating){ // ating in 0-150 range (percentage points)
+  const a = ating/100;
+  const sc = getScale();
+  if(a < sc.patMin) return 0;
+  if(a <= 1.0) return sc.multMin + (1-sc.multMin)*((a-sc.patMin)/(1-sc.patMin));
+  if(a <= sc.patMax) return 1.0 + (sc.multMax-1)*((a-1)/(sc.patMax-1));
+  return sc.multMax;
+}
+
+function abClass(ating){
+  const a = ating/100;
+  const sc = getScale();
+  if(a < sc.patMin) return {cls:'ab-z', lbl:'Abaixo m\u00edn'};
+  if(a <= 1.0) return {cls:'ab-l', lbl:'M\u00edn\u2192Alvo'};
+  if(a <= sc.patMax) return {cls:'ab-o', lbl:'\u2265 Alvo'};
+  return {cls:'ab-m', lbl:'Acima m\u00e1x'};
+}
+
+function blockCalc(gk){
+  const grp = G[gk];
+  const sc = getScale();
+  let gateTriggered = false;
+  for(const kpi of grp.kpis){
+    const a = (KPI[kpi.id]||100)/100;
+    if(kpi.g && a < sc.patMin){ gateTriggered=true; break; }
+  }
+  if(gateTriggered) return {mult:0, triggered:true};
+  let mult = 0;
+  for(const kpi of grp.kpis){
+    mult += kpi.p * kpiMult(KPI[kpi.id]||100);
+  }
+  return {mult, triggered:false};
+}
+
+function calcPerson(p){
+  // Corporate
+  const corp = blockCalc('Corporativo');
+  const coinsCorp = p.m * p.wC * corp.mult;
+
+  // Area (multi-scope)
+  let coinsArea = 0;
+  const areaDetails = [];
+  for(const scope of p.sA){
+    const split = p.areaSplit[scope]||0;
+    const bc = blockCalc(scope);
+    const sc = p.m * p.wA * split * bc.mult;
+    coinsArea += sc;
+    areaDetails.push({scope, split, mult:bc.mult, triggered:bc.triggered, coins:sc});
+  }
+
+  // Carteira
+  let coinsCart = 0;
+  const cartDetails = [];
+  if(p.wK > 0){
+    const cd = CD[p.id] || {moedasAjustadas: p.m*p.wK, contratos:[]};
+    const ma = cd.moedasAjustadas;
+    const nc = cd.contratos.length;
+    const wRes = n('p_wRes')/100 || 0.5;
+    const wCon = n('p_wCon')/100 || 0.5;
+    const sc = getScale();
+    if(nc===0){
+      coinsCart = 0;
+    } else {
+      for(const c of cd.contratos){
+        const base = ma/nc;
+        let cCoins=0;
+        const satPassed = (c.satA/100) >= sc.patMin;
+        if(!satPassed){
+          cCoins=0;
+        } else {
+          cCoins = base*(wRes*kpiMult(c.resA)+wCon*kpiMult(c.conA));
+        }
+        coinsCart += cCoins;
+        cartDetails.push({...c, base, cCoins, satPassed});
+      }
+    }
+    cartDetails._ma = ma;
+    cartDetails._nc = nc;
+  }
+
+  const tot = coinsCorp + coinsArea + coinsCart;
+  return {coinsCorp, coinsArea, coinsCart, tot, areaDetails, cartDetails, corp};
+}
+
+function getPool(){
+  const llMin = n('p_llMin');
+  const llReal = n('p_llReal');
+  const dist = n('p_dist')/100;
+  if(llReal <= llMin) return 0;
+  return (llReal-llMin)*dist*1000000;
+}
+
+// ══════════════════════════════════════════
+// BUILD UI
+// ══════════════════════════════════════════
+function buildEligTable(){
+  const tb = document.getElementById('elig-tbody');
+  tb.innerHTML='';
+  E.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${p.nome}</td>
+      <td>${p.cargo}</td>
+      <td><input type="number" min="0" max="9999" value="${p.m}" onchange="updatePersonMoedas(${i},this.value)"></td>
+      <td><input type="number" min="0" max="100" step="5" value="${Math.round(p.wC*100)}" onchange="E[${i}].wC=+this.value/100;recalc()"></td>
+      <td><input type="number" min="0" max="100" step="5" value="${Math.round(p.wA*100)}" onchange="E[${i}].wA=+this.value/100;recalc()"></td>
+      <td style="font-size:12px;color:var(--muted)">${p.sA.join(', ')||'&mdash;'}</td>
+      <td><input type="number" min="0" max="100" step="5" value="${Math.round(p.wK*100)}" onchange="updatePersonWK(${i},this.value)"></td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+
+function buildAreaSplit(){
+  const multi = E.filter(p=>p.sA.length>1);
+  const body = document.getElementById('area-split-body');
+  if(!multi.length){body.innerHTML='<p style="color:var(--muted);font-size:13px;">Nenhuma pessoa com m\u00faltiplos escopos de \u00e1rea.</p>';return;}
+  let html='<div style="display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;">';
+  multi.forEach(p=>{
+    const pidx = E.indexOf(p);
+    let total=0;
+    let scopeHtml='';
+    p.sA.forEach(scope=>{
+      const v=Math.round((p.areaSplit[scope]||0)*100);
+      total+=v;
+      scopeHtml+=`<div style="display:flex;align-items:center;gap:4px;">
+        <label style="font-size:12px;color:var(--muted);min-width:35px;">${scope}</label>
+        <input type="number" min="0" max="100" step="5" value="${v}" style="width:60px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" onchange="E[${pidx}].areaSplit['${scope}']=+this.value/100;recalc()">
+        <span style="font-size:11px;color:var(--muted);">%</span>
+      </div>`;
+    });
+    html+=`<div style="background:var(--bg);border-radius:var(--rs);padding:10px 14px;min-width:180px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:6px;">${p.nome}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">${scopeHtml}</div>
+      <div style="font-size:10px;margin-top:5px;color:${total===100?'var(--green-dk)':'var(--red)'};">Total: ${total}% ${total===100?'&#10003;':'&#9888; deve ser 100%'}</div>
+    </div>`;
+  });
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+function buildKpiParams(){
+  const body = document.getElementById('kpi-params-body');
+  let html='<div class="kpig-grid">';
+  for(const [gk,grp] of Object.entries(G)){
+    html+=`<div class="kpig"><div class="kpig-hdr ${grp.color}">${grp.lbl}</div><div class="kpig-body">`;
+    grp.kpis.forEach((kpi,ki)=>{
+      html+=`<div class="kpi-row">
+        <div class="kpi-lbl">
+          <span>${kpi.nome}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <label style="font-size:12px;color:var(--muted);min-width:50px;">Peso %</label>
+          <input type="number" min="0" max="100" step="5" value="${Math.round(kpi.p*100)}" style="width:70px;padding:4px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;" onchange="G['${gk}'].kpis[${ki}].p=+this.value/100;recalc()">
+          <label style="font-size:12px;color:var(--muted);margin-left:8px;">Gatilho&nbsp;&#9889;</label>
+          <input type="checkbox" ${kpi.g?'checked':''} onchange="G['${gk}'].kpis[${ki}].g=this.checked;updateGateTags();recalc()" title="Marcar como gatilho">
+        </div>
+      </div>`;
+    });
+    html+='</div></div>';
+  }
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+function buildKpiCards(){
+  // Corporate
+  const corpDiv = document.getElementById('kpig-corp');
+  corpDiv.innerHTML = buildGroupCard('Corporativo');
+
+  // Area groups
+  const areaDiv = document.getElementById('kpig-area');
+  areaDiv.innerHTML = '';
+  ['Administrativo','Comercial','GQM','ATE','ECP','EIH'].forEach(gk=>{
+    areaDiv.innerHTML += buildGroupCard(gk);
+  });
+}
+
+function buildGroupCard(gk){
+  const grp = G[gk];
+  let html=`<div class="kpig" id="card-${gk}">
+    <div class="kpig-hdr ${grp.color}">
+      <span>${grp.lbl}</span>
+      <span class="kpig-mult" id="mult_${gk}">${fMult(1)}</span>
+    </div>
+    <div class="kpig-body">`;
+  grp.kpis.forEach(kpi=>{
+    const ab = abClass(KPI[kpi.id]||100);
+    html+=`<div class="kpi-row">
+      <div class="kpi-lbl">
+        ${kpi.nome}
+        <span class="kpi-peso">${Math.round(kpi.p*100)}%</span>
+        <span class="gate-tag" id="gt_${kpi.id}" style="${kpi.g?'':'display:none'}">&#9889; Gatilho</span>
+      </div>
+      <div class="kpi-inp-row">
+        <input type="number" min="0" max="150" step="1" value="${KPI[kpi.id]||100}" id="kpi_${kpi.id}"
+          oninput="KPI['${kpi.id}']=+this.value;recalcKpiCard('${gk}')" title="${kpi.nome}">
+        <span class="unit">%</span>
+        <span class="ab ${ab.cls}" id="ab_${kpi.id}">${ab.lbl}</span>
+      </div>
+    </div>`;
+  });
+  html+=`<div class="gate-warn" id="gw_${gk}">&#9888; Gatilho ativado &mdash; bloco zerado</div>
+    <div class="kpig-result">
+      <span class="krl">Multiplicador do bloco</span>
+      <span class="krv" id="kr_${gk}">${fMult(1)}</span>
+    </div>
+    </div></div>`;
+  return html;
+}
+
+function buildCartSection(){
+  const div = document.getElementById('cart-section');
+  div.innerHTML='';
+  const cartPeople = E.filter(p=>p.wK>0);
+  if(!cartPeople.length){div.innerHTML='<p style="color:var(--muted)">Nenhum eleg\u00edvel com peso de carteira &gt; 0.</p>';return;}
+  cartPeople.forEach(p=>{
+    if(!CD[p.id]) CD[p.id]={moedasAjustadas:Math.round(p.m*p.wK), contratos:[]};
+    const cd=CD[p.id];
+    div.innerHTML+=buildCartCard(p,cd);
+  });
+}
+
+function buildCartCard(p,cd){
+  const sc=getScale();
+  const nc=cd.contratos.length;
+  const approved=cd.contratos.filter(c=>(c.satA/100)>=sc.patMin).length;
+  const ma=cd.moedasAjustadas;
+  const wRes=n('p_wRes')/100||0.5;
+  const wCon=n('p_wCon')/100||0.5;
+  let totalCoins=0;
+  let rowsHtml='';
+  cd.contratos.forEach((c,ci)=>{
+    const base=nc>0?ma/nc:0;
+    const satPassed=(c.satA/100)>=sc.patMin;
+    let cCoins=0;
+    if(satPassed) cCoins=base*(wRes*kpiMult(c.resA)+wCon*kpiMult(c.conA));
+    totalCoins+=cCoins;
+    const satCls=satPassed?'p-green':'p-red';
+    const satLbl=satPassed?'&#10003;':'&#10007;';
+    rowsHtml+=`<tr>
+      <td>${ci+1}</td>
+      <td><input type="text" value="${c.nome}" style="width:130px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;" onchange="CD['${p.id}'].contratos[${ci}].nome=this.value;refreshCartCard('${p.id}')"></td>
+      <td style="text-align:right">${fCoins(base)}</td>
+      <td><input type="number" min="0" max="150" step="1" value="${c.satA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].satA=+this.value;refreshCartCard('${p.id}')"></td>
+      <td><span class="pill ${satCls}">${satLbl}</span></td>
+      <td><input type="number" min="0" max="150" step="1" value="${c.resA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].resA=+this.value;refreshCartCard('${p.id}')"></td>
+      <td><input type="number" min="0" max="150" step="1" value="${c.conA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].conA=+this.value;refreshCartCard('${p.id}')"></td>
+      <td style="text-align:right;font-weight:700">${fCoins(cCoins)}</td>
+      <td><button class="btn-del" onclick="delContrato('${p.id}',${ci})">&#128465;</button></td>
+    </tr>`;
+  });
+
+  return `<div class="cart-card" id="cc_${p.id}">
+    <div class="cart-hdr">
+      <span>${p.nome} &mdash; ${p.cargo}</span>
+    </div>
+    <div class="cart-body">
+      <div class="ig">
+        <label>Moedas ajustadas (gest&atilde;o)<br><span style="font-weight:400;font-style:italic;font-size:11px;">ajuste por churn / contratos cancelados</span></label>
+        <input type="number" min="0" value="${ma}" id="ma_${p.id}" oninput="CD['${p.id}'].moedasAjustadas=+this.value;refreshCartCard('${p.id}')">
+        <span class="unit">moedas &nbsp;|&nbsp; base: ${fCoins(p.m*p.wK)}</span>
+      </div>
+      <div class="cart-summary" id="cs_${p.id}">
+        <strong>${nc}</strong> contratos ativos &nbsp;|&nbsp;
+        <strong>${approved}</strong> aprovados em satisfa&ccedil;&atilde;o &nbsp;|&nbsp;
+        Moedas carteira: <strong>${fCoins(totalCoins)}</strong> / ${fCoins(ma)}
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tbl" id="ct_${p.id}">
+          <thead><tr>
+            <th>#</th><th>Nome do Contrato</th><th>Moedas base</th>
+            <th>Satisfa&ccedil;&atilde;o %</th><th>Status</th>
+            <th>Resultado %</th><th>Conformidade %</th><th>Moedas</th><th></th>
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      <button class="btn-add" onclick="addContrato('${p.id}')">+ Adicionar Contrato</button>
+    </div>
+  </div>`;
+}
+
+function addContrato(pid){
+  if(!CD[pid]) CD[pid]={moedasAjustadas:0,contratos:[]};
+  CD[pid].contratos.push({nome:'Contrato '+(CD[pid].contratos.length+1),satA:100,resA:100,conA:100});
+  refreshCartCard(pid);
+  recalc();
+}
+
+function delContrato(pid,ci){
+  CD[pid].contratos.splice(ci,1);
+  refreshCartCard(pid);
+  recalc();
+}
+
+function refreshCartCard(pid){
+  const p=E.find(x=>x.id===pid);
+  if(!p) return;
+  const cd=CD[pid]||{moedasAjustadas:p.m*p.wK,contratos:[]};
+  const container=document.getElementById('cc_'+pid);
+  if(!container) return;
+  const newHtml=buildCartCard(p,cd);
+  container.outerHTML=newHtml;
+  recalc();
+}
+
+// ══════════════════════════════════════════
+// RECALC (live update)
+// ══════════════════════════════════════════
+function recalcKpiCard(gk){
+  // Update only badge and multiplier display — don't rebuild card
+  const grp=G[gk];
+  const bc=blockCalc(gk);
+  const multEl=document.getElementById('mult_'+gk);
+  const krEl=document.getElementById('kr_'+gk);
+  const gwEl=document.getElementById('gw_'+gk);
+  if(multEl) multEl.textContent=fMult(bc.mult);
+  if(krEl) krEl.textContent=fMult(bc.mult);
+  if(gwEl) gwEl.style.display=bc.triggered?'block':'none';
+  grp.kpis.forEach(kpi=>{
+    const v=KPI[kpi.id]||100;
+    const ab=abClass(v);
+    const abEl=document.getElementById('ab_'+kpi.id);
+    if(abEl){abEl.className='ab '+ab.cls;abEl.textContent=ab.lbl;}
+  });
+  recalc();
+}
+
+function updateGateTags(){
+  for(const [gk,grp] of Object.entries(G)){
+    grp.kpis.forEach(kpi=>{
+      const el=document.getElementById('gt_'+kpi.id);
+      if(el) el.style.display=kpi.g?'':'none';
+    });
+  }
+}
+
+function recalc(){
+  // Update pool display
+  const pool=getPool();
+  const pvEl=document.getElementById('pool-val');
+  if(pvEl) pvEl.textContent=fBRL(pool);
+
+  // Update all KPI card multipliers
+  for(const gk of Object.keys(G)){
+    const bc=blockCalc(gk);
+    const multEl=document.getElementById('mult_'+gk);
+    const krEl=document.getElementById('kr_'+gk);
+    const gwEl=document.getElementById('gw_'+gk);
+    if(multEl) multEl.textContent=fMult(bc.mult);
+    if(krEl) krEl.textContent=fMult(bc.mult);
+    if(gwEl) gwEl.style.display=bc.triggered?'block':'none';
+    G[gk].kpis.forEach(kpi=>{
+      const v=KPI[kpi.id]||100;
+      const ab=abClass(v);
+      const abEl=document.getElementById('ab_'+kpi.id);
+      if(abEl){abEl.className='ab '+ab.cls;abEl.textContent=ab.lbl;}
+    });
+  }
+
+  // Calc all people
+  const results=E.map(p=>({p,r:calcPerson(p)}));
+  const totalCoins=results.reduce((s,x)=>s+x.r.tot,0);
+  const totalAlvo=E.reduce((s,p)=>s+p.m,0);
+
+  // Update result tab metrics
+  const metricsDiv=document.getElementById('res-metrics');
+  if(metricsDiv){
+    metricsDiv.innerHTML=`
+      <div class="mbox navy"><div class="mv">${fBRL(pool)}</div><div class="ml">Pool de B\u00f4nus</div></div>
+      <div class="mbox"><div class="mv">${fCoins(totalAlvo)}</div><div class="ml">Total Moedas Alvo</div></div>
+      <div class="mbox steel"><div class="mv">${fCoins(totalCoins)}</div><div class="ml">Total Moedas Resultado</div></div>
+      <div class="mbox lime"><div class="mv">${fBRL(pool)}</div><div class="ml">Custo Total (pool distribu\u00eddo)</div></div>
+    `;
+  }
+
+  // Update result table
+  const tbody=document.getElementById('res-tbody');
+  if(!tbody) return;
+  tbody.innerHTML='';
+  results.forEach(({p,r},idx)=>{
+    const pct=totalCoins>0?r.tot/totalCoins:0;
+    const payment=pct*pool;
+    const delta=r.tot-p.m;
+    const deltaSign=delta>=0?'+':'';
+    const dCls=delta>=0?'c-green':'c-red';
+    const barW=totalAlvo>0?Math.min(100,r.tot/totalAlvo*100):0;
+    const status=pool===0?'<span class="pill p-red">Gatilho n\u00e3o atingido</span>':
+                  Math.abs(r.tot-p.m)<0.5?'<span class="pill p-navy">Alvo</span>':
+                  r.tot>p.m+0.5?'<span class="pill p-green">Acima alvo</span>':
+                  r.tot>0?'<span class="pill p-orange">Parcial</span>':
+                  '<span class="pill p-red">Zero</span>';
+
+    const tr=document.createElement('tr');
+    tr.className='row-exp';
+    tr.id='tr_'+p.id;
+    tr.innerHTML=`
+      <td><button class="exp-btn" id="eb_${p.id}" onclick="toggleDet('${p.id}',this)">+</button></td>
+      <td class="fw7">${p.nome}</td>
+      <td style="color:var(--muted);font-size:12px">${p.cargo}</td>
+      <td style="text-align:right">${fCoins(p.m)}</td>
+      <td style="text-align:right;font-weight:700">${fCoins(r.tot)}</td>
+      <td style="text-align:right" class="${dCls}">${deltaSign}${fCoins(delta)}</td>
+      <td style="text-align:right">${fPct(pct)}</td>
+      <td style="text-align:right;font-weight:700;color:var(--navy)">${fBRL(payment)}</td>
+      <td><div style="background:var(--border);border-radius:4px;height:7px;"><div class="bar" style="width:${barW.toFixed(1)}%;background:var(--teal);"></div></div></td>
+      <td>${status}</td>
+    `;
+    tbody.appendChild(tr);
+
+    // Detail row
+    const det=document.createElement('tr');
+    det.className='det-row';
+    det.id='det_'+p.id;
+    const detTd=document.createElement('td');
+    detTd.className='det-cell';
+    detTd.colSpan=10;
+    detTd.innerHTML=buildDetailHTML(p,r,pool,totalCoins,payment);
+    det.appendChild(detTd);
+    tbody.appendChild(det);
+  });
+}
+
+function buildDetailHTML(p,r,pool,totalCoins,payment){
+  let html='<div class="det-inner">';
+
+  // Corporate block
+  const corpGrp=G['Corporativo'];
+  const corpZero=r.corp.triggered;
+  html+=`<div class="blk ${corpZero?'zeroed':''}">
+    <div class="blk-title">Corporativo</div>
+    <div class="blk-w">Peso ${Math.round(p.wC*100)}%</div>
+    ${corpGrp.kpis.map(kpi=>`<div class="blk-kpi"><span>${kpi.nome}</span><span>${KPI[kpi.id]||100}%</span></div>`).join('')}
+    ${corpZero?'<div class="rbox" style="margin-top:6px;font-size:11px;">Gatilho ativado</div>':''}
+    <div class="blk-res">
+      <span class="blk-mult-tag">${fMult(r.corp.mult)}</span>
+      <span class="blk-coins">${fCoins(r.coinsCorp)} moedas</span>
+    </div>
+  </div>`;
+
+  // Area blocks
+  if(r.areaDetails.length===0 && p.wA>0){
+    html+=`<div class="blk"><div class="blk-title">&Aacute;rea</div><div class="blk-w">Peso ${Math.round(p.wA*100)}%</div><p style="font-size:12px;color:var(--muted)">Sem escopo definido.</p></div>`;
+  }
+  r.areaDetails.forEach(ad=>{
+    const grp=G[ad.scope];
+    html+=`<div class="blk ${ad.triggered?'zeroed':''}">
+      <div class="blk-title">&Aacute;rea: ${ad.scope}</div>
+      <div class="blk-w">Split ${Math.round(ad.split*100)}%</div>
+      ${grp.kpis.map(kpi=>`<div class="blk-kpi"><span>${kpi.nome}</span><span>${KPI[kpi.id]||100}%</span></div>`).join('')}
+      ${ad.triggered?'<div class="rbox" style="margin-top:6px;font-size:11px;">Gatilho ativado</div>':''}
+      <div class="blk-res">
+        <span class="blk-mult-tag">${fMult(ad.mult)}</span>
+        <span class="blk-coins">${fCoins(ad.coins)} moedas</span>
+      </div>
+    </div>`;
+  });
+
+  // Carteira block
+  if(p.wK>0){
+    const cd=CD[p.id]||{moedasAjustadas:p.m*p.wK,contratos:[]};
+    let cartRows='';
+    if(cd.contratos.length===0){
+      cartRows='<tr><td colspan="4" style="color:var(--muted);font-size:12px;text-align:center;">Nenhum contrato cadastrado</td></tr>';
+    } else {
+      const nc=cd.contratos.length;
+      const ma=cd.moedasAjustadas;
+      const sc=getScale();
+      const wRes=n('p_wRes')/100||0.5;
+      const wCon=n('p_wCon')/100||0.5;
+      cd.contratos.forEach((c,ci)=>{
+        const base=ma/nc;
+        const satPassed=(c.satA/100)>=sc.patMin;
+        let cCoins=0;
+        if(satPassed) cCoins=base*(wRes*kpiMult(c.resA)+wCon*kpiMult(c.conA));
+        cartRows+=`<tr>
+          <td>${c.nome}</td>
+          <td>${c.satA}% <span class="pill ${satPassed?'p-green':'p-red'}">${satPassed?'&#10003;':'&#10007;'}</span></td>
+          <td>${c.resA}% / ${c.conA}%</td>
+          <td style="font-weight:700">${fCoins(cCoins)}</td>
+        </tr>`;
+      });
+    }
+    html+=`<div class="blk">
+      <div class="blk-title">Carteira (GQM e ATE)</div>
+      <div class="blk-w">Peso ${Math.round(p.wK*100)}%</div>
+      <table class="tbl" style="font-size:11px;margin-top:4px;">
+        <thead><tr><th>Contrato</th><th>Satisfa&ccedil;&atilde;o</th><th>Res / Conf</th><th>Moedas</th></tr></thead>
+        <tbody>${cartRows}</tbody>
+      </table>
+      <div class="blk-res">
+        <span class="blk-mult-tag">Carteira</span>
+        <span class="blk-coins">${fCoins(r.coinsCart)} moedas</span>
+      </div>
+    </div>`;
+  }
+
+  // Summary
+  const pct=totalCoins>0?r.tot/totalCoins:0;
+  html+=`<div class="blk-total">
+    <div>
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Total</div>
+      <div style="font-size:18px;font-weight:700;color:var(--navy)">${fCoins(r.tot)} moedas</div>
+      <div style="font-size:11px;color:var(--muted)">Alvo: ${fCoins(p.m)} &nbsp;|&nbsp; ${fPct(p.m>0?r.tot/p.m:0)} do alvo</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Pagamento estimado</div>
+      <div style="font-size:20px;font-weight:700;color:var(--navy)">${fBRL(payment)}</div>
+      <div style="font-size:11px;color:var(--muted)">${fPct(pct)} do pool</div>
+    </div>
+  </div>`;
+
+  html+='</div>';
+  return html;
+}
+
+function toggleDet(pid, btn){
+  const det=document.getElementById('det_'+pid);
+  if(!det) return;
+  const open=det.classList.toggle('open');
+  btn.classList.toggle('open',open);
+  btn.textContent=open?'\u2212':'+';
+}
+
+// ══════════════════════════════════════════
+// PARAM CHANGE HELPERS
+// ══════════════════════════════════════════
+function updatePersonMoedas(idx, val){
+  const p = E[idx];
+  const oldDef = Math.round(p.m * p.wK);
+  p.m = +val;
+  if(p.wK > 0 && CD[p.id]){
+    if(Math.abs(CD[p.id].moedasAjustadas - oldDef) < 1){
+      CD[p.id].moedasAjustadas = Math.round(p.m * p.wK);
+      const maEl = document.getElementById('ma_'+p.id);
+      if(maEl) maEl.value = CD[p.id].moedasAjustadas;
+      refreshCartCard(p.id);
+    }
+  }
+  recalc();
+}
+
+function updatePersonWK(idx, val){
+  const p = E[idx];
+  const oldWK = p.wK;
+  const oldDef = Math.round(p.m * oldWK);
+  p.wK = +val/100;
+  if(p.wK > 0){
+    if(!CD[p.id]){
+      CD[p.id] = {moedasAjustadas: Math.round(p.m * p.wK), contratos:defaultContratos()};
+    } else if(Math.abs(CD[p.id].moedasAjustadas - oldDef) < 1){
+      CD[p.id].moedasAjustadas = Math.round(p.m * p.wK);
+    }
+    buildCartSection();
+  }
+  recalc();
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+function defaultContratos(){ return [{nome:'Contrato 1',satA:100,resA:100,conA:100}]; }
+
+function initCD(){
+  E.forEach(p=>{
+    if(p.wK>0 && !CD[p.id]){
+      CD[p.id]={moedasAjustadas:Math.round(p.m*p.wK),contratos:defaultContratos()};
+    }
+  });
+}
+
+function initKPI(){
+  for(const grp of Object.values(G)){
+    for(const kpi of grp.kpis){
+      if(KPI[kpi.id]===undefined) KPI[kpi.id]=100;
+    }
+  }
+}
+
+function showTab(id, btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('act'));
+  document.getElementById('tab-'+id).classList.add('act');
+  btn.classList.add('act');
+  if(id==='resultado') recalc();
+}
+
+// ══════════════════════════════════════════
+// EXCEL IMPORT / EXPORT
+// ══════════════════════════════════════════
+function exportExcel(){
+  if(typeof XLSX==='undefined'){alert('SheetJS n\u00e3o carregado. Verifique a conex\u00e3o.');return;}
+  const wb=XLSX.utils.book_new();
+
+  // Sheet 1: Parâmetros
+  const param=[
+    ['Parametro','Valor'],
+    ['LL Minimo (R$ M)', n('p_llMin')],
+    ['LL Realizado (R$ M)', n('p_llReal')],
+    ['% Distribuicao', n('p_dist')],
+    ['PatMin %', n('p_patMin')],
+    ['PatMax %', n('p_patMax')],
+    ['MultMin', n('p_multMin')],
+    ['MultMax', n('p_multMax')],
+    ['Peso Resultado Carteira %', n('p_wRes')],
+    ['Peso Conformidade Carteira %', n('p_wCon')],
+  ];
+  E.forEach(p=>{
+    param.push([p.id+'_m', p.m]);
+    param.push([p.id+'_wC', Math.round(p.wC*100)]);
+    param.push([p.id+'_wA', Math.round(p.wA*100)]);
+    param.push([p.id+'_wK', Math.round(p.wK*100)]);
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(param), 'Parametros');
+
+  // Sheet 2: KPI Atingimento
+  const kpiSheet=[['Grupo','KPI_ID','Nome','Atingimento %','Gatilho']];
+  for(const [gk,grp] of Object.entries(G)){
+    grp.kpis.forEach(kpi=>{
+      kpiSheet.push([gk, kpi.id, kpi.nome, KPI[kpi.id]||100, kpi.g?'Sim':'Nao']);
+    });
+  }
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kpiSheet), 'Atingimento_KPIs');
+
+  // Sheet 3: Carteiras
+  const cartSheet=[['Pessoa_ID','Moedas Ajustadas','Contrato','Satisfacao %','Resultado %','Conformidade %']];
+  E.filter(p=>p.wK>0).forEach(p=>{
+    const cd=CD[p.id];
+    if(!cd) return;
+    cartSheet.push([p.id, cd.moedasAjustadas,'','','','']);
+    cd.contratos.forEach(c=>{
+      cartSheet.push([p.id,'', c.nome, c.satA, c.resA, c.conA]);
+    });
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cartSheet), 'Carteiras');
+
+  XLSX.writeFile(wb, 'simulador_rvv_equipacare.xlsx');
+}
+
+function importExcel(){
+  document.getElementById('file-input').click();
+}
+
+function handleImport(ev){
+  const file=ev.target.files[0];
+  if(!file) return;
+  if(typeof XLSX==='undefined'){alert('SheetJS n\u00e3o carregado.');return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+
+      // Parametros
+      const ps=XLSX.utils.sheet_to_json(wb.Sheets['Parametros'],{header:1});
+      const pm={};
+      ps.slice(1).forEach(r=>{ if(r[0]) pm[r[0]]=r[1]; });
+      ['p_llMin','p_llReal','p_dist','p_patMin','p_patMax','p_multMin','p_multMax','p_wRes','p_wCon'].forEach(id=>{
+        const lblMap={'p_llMin':'LL Minimo (R$ M)','p_llReal':'LL Realizado (R$ M)','p_dist':'% Distribuicao',
+          'p_patMin':'PatMin %','p_patMax':'PatMax %','p_multMin':'MultMin','p_multMax':'MultMax',
+          'p_wRes':'Peso Resultado Carteira %','p_wCon':'Peso Conformidade Carteira %'};
+        const el=document.getElementById(id);
+        if(el && pm[lblMap[id]]!==undefined) el.value=pm[lblMap[id]];
+      });
+      E.forEach(p=>{
+        if(pm[p.id+'_m']!==undefined) p.m=+pm[p.id+'_m'];
+        if(pm[p.id+'_wC']!==undefined) p.wC=+pm[p.id+'_wC']/100;
+        if(pm[p.id+'_wA']!==undefined) p.wA=+pm[p.id+'_wA']/100;
+        if(pm[p.id+'_wK']!==undefined) p.wK=+pm[p.id+'_wK']/100;
+      });
+
+      // KPI Atingimento
+      const ks=XLSX.utils.sheet_to_json(wb.Sheets['Atingimento_KPIs'],{header:1});
+      ks.slice(1).forEach(r=>{
+        if(r[1]) KPI[r[1]]=+r[3]||100;
+        if(r[1] && r[4]){
+          for(const grp of Object.values(G)){
+            const kpi=grp.kpis.find(k=>k.id===r[1]);
+            if(kpi) kpi.g=(r[4]==='Sim');
+          }
+        }
+      });
+
+      // Carteiras
+      const cs=XLSX.utils.sheet_to_json(wb.Sheets['Carteiras'],{header:1});
+      let curPid=null;
+      cs.slice(1).forEach(r=>{
+        if(!r[0]) return;
+        if(r[1]!=='' && r[1]!==undefined && r[2]===''){
+          curPid=r[0];
+          CD[curPid]={moedasAjustadas:+r[1]||0,contratos:[]};
+        } else if(r[2]){
+          if(!curPid) curPid=r[0];
+          if(!CD[curPid]) CD[curPid]={moedasAjustadas:0,contratos:[]};
+          CD[curPid].contratos.push({nome:r[2],satA:+r[3]||100,resA:+r[4]||100,conA:+r[5]||100});
+        }
+      });
+
+      // Rebuild UI
+      buildEligTable();
+      buildAreaSplit();
+      buildKpiParams();
+      buildKpiCards();
+      buildCartSection();
+      recalc();
+      alert('Importa\u00e7\u00e3o conclu\u00edda!');
+    } catch(err){
+      alert('Erro ao importar: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  ev.target.value='';
+}
+
+// ══════════════════════════════════════════
+// BOOT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',function(){
+  initKPI();
+  initCD();
+  buildEligTable();
+  buildAreaSplit();
+  buildKpiParams();
+  buildKpiCards();
+  buildCartSection();
+  recalc();
+});
+</script>
+</body>
+</html>

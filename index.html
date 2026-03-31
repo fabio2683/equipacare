@@ -209,8 +209,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
   </div>
   <div class="hdr-badge">Simula&ccedil;&atilde;o</div>
   <div class="hdr-btns">
-    <button class="btn-hdr btn-imp" onclick="importExcel()">&#8593; Importar Simula&ccedil;&atilde;o</button>
-    <button class="btn-hdr btn-exp" onclick="exportExcel()">&#8595; Salvar</button>
+    <button class="btn-hdr btn-imp" onclick="importExcel()">&#8593; Importar Par&acirc;metros</button>
+    <button class="btn-hdr btn-exp" onclick="exportExcel()">&#8595; Exportar Par&acirc;metros</button>
   </div>
 </header>
 
@@ -418,6 +418,10 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
 <div id="tab-resultado" class="pane">
 
   <div class="mbox-row" id="res-metrics"></div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+    <button class="btn-hdr btn-exp" style="border-radius:var(--rs);" onclick="exportResultados()">&#8595; Exportar Resultados</button>
+  </div>
 
   <div class="card">
     <div class="ch navy">Resultado por Eleg&iacute;vel</div>
@@ -1096,6 +1100,57 @@ function showTab(id, btn){
 // ══════════════════════════════════════════
 // EXCEL IMPORT / EXPORT
 // ══════════════════════════════════════════
+function exportResultados(){
+  if(typeof XLSX==='undefined'){alert('SheetJS n\u00e3o carregado.');return;}
+  const pool=getPool();
+  const results=E.map(p=>({p,r:calcPerson(p)}));
+  const totalCoins=results.reduce((s,x)=>s+x.r.tot,0);
+
+  const rows=[
+    ['Nome','Cargo','Moedas Alvo','Moedas Resultado','\u0394 vs Alvo','% do Pool','Pagamento Estimado (R$)','Status',
+     'Moedas Corp.','Moedas \u00c1rea','Moedas Carteira'],
+  ];
+  results.forEach(({p,r})=>{
+    const pct=totalCoins>0?r.tot/totalCoins:0;
+    const payment=pct*pool;
+    const delta=r.tot-p.m;
+    const status=pool===0?'Gatilho n\u00e3o atingido':
+                 Math.abs(r.tot-p.m)<0.5?'Alvo':
+                 r.tot>p.m+0.5?'Acima alvo':
+                 r.tot>0?'Parcial':'Zero';
+    rows.push([
+      p.nome, p.cargo,
+      p.m, Math.round(r.tot), Math.round(delta),
+      parseFloat((pct*100).toFixed(2)),
+      Math.round(payment),
+      status,
+      Math.round(r.coinsCorp), Math.round(r.coinsArea), Math.round(r.coinsCart),
+    ]);
+  });
+
+  // Linha de totais
+  rows.push([]);
+  rows.push([
+    'TOTAL', '',
+    E.reduce((s,p)=>s+p.m,0), Math.round(totalCoins), '',
+    100, Math.round(pool), '', '', '', '',
+  ]);
+
+  const wb=XLSX.utils.book_new();
+  const ws=buildXSheet(rows,[22,20,12,14,12,10,20,16,12,12,14]);
+  XLSX.utils.book_append_sheet(wb, ws, 'Resultados RVV');
+
+  try {
+    const wbOut=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([wbOut],{type:'application/octet-stream'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download='resultados_rvv_equipacare.xlsx';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },200);
+  } catch(err){ alert('Erro ao exportar resultados: '+err.message); }
+}
+
 function buildXSheet(rows, colWidths){
   const ws = XLSX.utils.aoa_to_sheet(rows.map(row=> row||[]));
   if(colWidths) ws['!cols'] = colWidths.map(w=>({wch:w}));
@@ -1111,7 +1166,7 @@ function exportExcel(){
     ['SIMULADOR RVV \u2014 LIDERAN\u00c7A EQUIPACARE 2026  |  Guia de Preenchimento'],
     [''],
     ['SOBRE ESTA PLANILHA'],
-    ['Esta planilha \u00e9 exportada pelo simulador de b\u00f4nus. Edite os valores nas abas indicadas e importe de volta usando o bot\u00e3o \u201cImportar Simula\u00e7\u00e3o\u201d no simulador.'],
+    ['Esta planilha \u00e9 exportada pelo simulador de b\u00f4nus. Edite os valores nas abas indicadas e importe de volta usando o bot\u00e3o \u201cImportar Par\u00e2metros\u201d no simulador.'],
     ['Aten\u00e7\u00e3o: n\u00e3o altere os nomes das abas nem as colunas de ID. Apenas os valores marcados como edit\u00e1veis devem ser modificados.'],
     [''],
     ['ABA: POOL E ESCALA'],

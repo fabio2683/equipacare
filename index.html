@@ -209,8 +209,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
   </div>
   <div class="hdr-badge">Simula&ccedil;&atilde;o</div>
   <div class="hdr-btns">
-    <button class="btn-hdr btn-imp" onclick="importExcel()">&#8593; Importar Excel</button>
-    <button class="btn-hdr btn-exp" onclick="exportExcel()">&#8595; Exportar Excel</button>
+    <button class="btn-hdr btn-imp" onclick="importExcel()">&#8593; Importar Simula&ccedil;&atilde;o</button>
+    <button class="btn-hdr btn-exp" onclick="exportExcel()">&#8595; Salvar</button>
   </div>
 </header>
 
@@ -284,7 +284,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
         <div class="blk">
           <div class="blk-title">Bloco de Carteira (GQM e ATE)</div>
           <p style="font-size:12px;color:var(--muted);">Para Gerentes Regionais com carteira de contratos GQM e ATE. Cada contrato avaliado individualmente por Satisfa&ccedil;&atilde;o (gate), Resultado e Conformidade.</p>
-          <div class="ibox" style="margin-top:8px;font-size:12px;"><strong>Gate de satisfa&ccedil;&atilde;o:</strong> contrato reprovado gera 0 moedas para aquele contrato.</div>
+          <div class="ibox" style="margin-top:8px;font-size:12px;"><strong>Gate de satisfa&ccedil;&atilde;o:</strong> nota &lt; m&iacute;nimo (0&ndash;10) &rarr; 0 moedas naquele contrato.</div>
         </div>
       </div>
       <div class="wbox">
@@ -310,7 +310,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
         <div class="fst">
           <div class="num">3</div>
           <h4>Gate de Satisfa&ccedil;&atilde;o</h4>
-          <p>Se a nota de Satisfa&ccedil;&atilde;o do contrato estiver abaixo do resultado m&iacute;nimo &rarr; moedas daquele contrato = 0 (sem compensa&ccedil;&atilde;o).</p>
+          <p>Se a nota de Satisfa&ccedil;&atilde;o do contrato (escala 0&ndash;10) for inferior ao m&iacute;nimo configurado (padr&atilde;o: 8) &rarr; moedas daquele contrato = 0 (sem compensa&ccedil;&atilde;o).</p>
         </div>
         <div class="fst">
           <div class="num">4</div>
@@ -323,8 +323,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
       </div>
       <div class="ibox" style="margin-top:10px;font-size:12px;">
         <strong>Exemplo:</strong> Regional com moedas-alvo de carteira = 300 (moedas-alvo &times; peso carteira). Tinha 10 contratos iniciais, perdeu 2 por churn &rarr; gest&atilde;o ajusta para <strong>240 moedas</strong> (300 &times; 8/10, refletindo a redu&ccedil;&atilde;o). Ao final do ano, tem 9 contratos ativos &rarr; base = 240 &divide; 9 = <strong>26,7 moedas/contrato</strong>.<br>
-        &bull; <em>Contrato A</em>: Satisfa&ccedil;&atilde;o 95% &#10003; &nbsp;| Resultado 110%, Conformidade 100% &rarr; Moedas = 26,7 &times; (50%&times;1,10 + 50%&times;1,00) = 26,7 &times; 1,05 = <strong>28,0</strong><br>
-        &bull; <em>Contrato B</em>: Satisfa&ccedil;&atilde;o 75% &#10007; (abaixo do m&iacute;nimo) &rarr; Moedas = <strong>0</strong>
+        &bull; <em>Contrato A</em>: Satisfa&ccedil;&atilde;o 9,5/10 &#10003; &nbsp;| Resultado 110%, Conformidade 100% &rarr; Moedas = 26,7 &times; (50%&times;1,10 + 50%&times;1,00) = 26,7 &times; 1,05 = <strong>28,0</strong><br>
+        &bull; <em>Contrato B</em>: Satisfa&ccedil;&atilde;o 7,5/10 &#10007; (abaixo do m&iacute;nimo de 8) &rarr; Moedas = <strong>0</strong>
       </div>
     </div>
   </div>
@@ -391,6 +391,7 @@ hr.div{border:none;border-top:1px solid var(--border);margin:13px 0;}
     <div class="ch steel">Pesos da Carteira (GQM e ATE)</div>
     <div class="cb">
       <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center;">
+        <div class="ig" style="margin:0"><label>Nota m&iacute;nima de Satisfa&ccedil;&atilde;o (gatilho)</label><input type="number" id="p_satGate" value="8" step="0.5" min="0" max="10" oninput="recalc()"><span class="unit">/ 10</span></div>
         <div class="ig" style="margin:0"><label>Peso Resultado (%)</label><input type="number" id="p_wRes" value="50" step="5" min="0" max="100" oninput="recalc()"><span class="unit">%</span></div>
         <div class="ig" style="margin:0"><label>Peso Conformidade (%)</label><input type="number" id="p_wCon" value="50" step="5" min="0" max="100" oninput="recalc()"><span class="unit">%</span></div>
       </div>
@@ -453,14 +454,14 @@ let E = [
   {id:'claudio',     nome:'Claudio',      atu:'Servi\u00e7os',        cargo:'Ger. Nacional',         m:600, wC:0.2,wA:0.8,sA:['GQM','ATE'],             areaSplit:{GQM:0.5,ATE:0.5},    wK:0},
   {id:'francielen',  nome:'Francielen',   atu:'Projetos',         cargo:'Ger. Ger. Projetos',    m:600, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
   {id:'bruno',       nome:'Bruno',        atu:'Infra',            cargo:'Ger. Ger. Infra',       m:400, wC:0.2,wA:0.8,sA:['EIH'],                   areaSplit:{EIH:1},              wK:0},
-  {id:'homero',      nome:'Homero',       atu:'Servi\u00e7os',        cargo:'Ger. Regional II',      m:400, wC:0.2,wA:0.2,sA:['ECP','GQM'],             areaSplit:{ECP:0.5,GQM:0.5},    wK:0.6},
-  {id:'j_alcantara', nome:'J. Alc\u00e2ntara', atu:'Servi\u00e7os',   cargo:'Ger. Regional II',      m:400, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
-  {id:'hugo',        nome:'Hugo',         atu:'Servi\u00e7os',        cargo:'Ger. Regional II',      m:400, wC:0.2,wA:0.2,sA:['ECP','GQM'],             areaSplit:{ECP:0.5,GQM:0.5},    wK:0.6},
-  {id:'thayane',     nome:'Thayane',      atu:'Servi\u00e7os',        cargo:'Ger. Regional I',       m:300, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
-  {id:'lucas',       nome:'Lucas',        atu:'Servi\u00e7os',        cargo:'Ger. Regional I',       m:300, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
-  {id:'fabio_sales', nome:'Fabio Sales',  atu:'Projetos',         cargo:'Espec. Proj. III',      m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
-  {id:'vinicius',    nome:'Vinicius',     atu:'Projetos',         cargo:'Espec. Proj. III',      m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
-  {id:'sarah',       nome:'Sarah',        atu:'Projetos',         cargo:'Espec. Proj. I',        m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'homero',      nome:'Homero',       atu:'Servi\u00e7os',        cargo:'Ger. Regional',         m:400, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'j_alcantara', nome:'J. Alc\u00e2ntara', atu:'Servi\u00e7os',   cargo:'Ger. Regional',         m:400, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'hugo',        nome:'Hugo',         atu:'Servi\u00e7os',        cargo:'Ger. Regional',         m:400, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'thayane',     nome:'Thayane',      atu:'Servi\u00e7os',        cargo:'Ger. Regional',         m:300, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'lucas',       nome:'Lucas',        atu:'Servi\u00e7os',        cargo:'Ger. Regional',         m:300, wC:0.2,wA:0,  sA:[],                        areaSplit:{},                   wK:0.8},
+  {id:'fabio_sales', nome:'Fabio Sales',  atu:'Projetos',         cargo:'Espec. Projetos',       m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'vinicius',    nome:'Vinicius',     atu:'Projetos',         cargo:'Espec. Projetos',       m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
+  {id:'sarah',       nome:'Sarah',        atu:'Projetos',         cargo:'Espec. Projetos',       m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
   {id:'rafael_ruiz', nome:'Rafael Ruiz',  atu:'Projetos',         cargo:'L\u00edder Projetos',       m:200, wC:0.2,wA:0.8,sA:['ECP'],                   areaSplit:{ECP:1},              wK:0},
   {id:'leandro',     nome:'Leandro',      atu:'ATE',              cargo:'Superv. ATE',           m:200, wC:0.2,wA:0.8,sA:['ATE'],                   areaSplit:{ATE:1},              wK:0},
   {id:'elaine',      nome:'Elaine',       atu:'RH',               cargo:'Superv. RH',            m:200, wC:0.7,wA:0.3,sA:['Administrativo'],         areaSplit:{Administrativo:1},   wK:0},
@@ -497,6 +498,11 @@ function getScale(){
     multMin: n('p_multMin') || 0.8,
     multMax: n('p_multMax') || 1.2,
   };
+}
+
+function getSatGate(){
+  const el = document.getElementById('p_satGate');
+  return el ? (parseFloat(el.value) || 8) : 8;
 }
 
 function kpiMult(ating){ // ating in 0-150 range (percentage points)
@@ -565,7 +571,7 @@ function calcPerson(p){
       for(const c of cd.contratos){
         const base = ma/nc;
         let cCoins=0;
-        const satPassed = (c.satA/100) >= sc.patMin;
+        const satPassed = c.satA >= getSatGate();
         if(!satPassed){
           cCoins=0;
         } else {
@@ -725,7 +731,7 @@ function buildCartSection(){
 function buildCartCard(p,cd){
   const sc=getScale();
   const nc=cd.contratos.length;
-  const approved=cd.contratos.filter(c=>(c.satA/100)>=sc.patMin).length;
+  const approved=cd.contratos.filter(c=>c.satA>=getSatGate()).length;
   const ma=cd.moedasAjustadas;
   const wRes=n('p_wRes')/100||0.5;
   const wCon=n('p_wCon')/100||0.5;
@@ -733,7 +739,7 @@ function buildCartCard(p,cd){
   let rowsHtml='';
   cd.contratos.forEach((c,ci)=>{
     const base=nc>0?ma/nc:0;
-    const satPassed=(c.satA/100)>=sc.patMin;
+    const satPassed=c.satA>=getSatGate();
     let cCoins=0;
     if(satPassed) cCoins=base*(wRes*kpiMult(c.resA)+wCon*kpiMult(c.conA));
     totalCoins+=cCoins;
@@ -743,7 +749,7 @@ function buildCartCard(p,cd){
       <td>${ci+1}</td>
       <td><input type="text" value="${c.nome}" style="width:130px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;" onchange="CD['${p.id}'].contratos[${ci}].nome=this.value;refreshCartCard('${p.id}')"></td>
       <td style="text-align:right">${fCoins(base)}</td>
-      <td><input type="number" min="0" max="150" step="1" value="${c.satA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].satA=+this.value;refreshCartCard('${p.id}')"></td>
+      <td><input type="number" min="0" max="10" step="0.1" value="${c.satA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].satA=+this.value;refreshCartCard('${p.id}')"></td>
       <td><span class="pill ${satCls}">${satLbl}</span></td>
       <td><input type="number" min="0" max="150" step="1" value="${c.resA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].resA=+this.value;refreshCartCard('${p.id}')"></td>
       <td><input type="number" min="0" max="150" step="1" value="${c.conA}" style="width:65px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:right;" oninput="CD['${p.id}'].contratos[${ci}].conA=+this.value;refreshCartCard('${p.id}')"></td>
@@ -784,7 +790,7 @@ function buildCartCard(p,cd){
 
 function addContrato(pid){
   if(!CD[pid]) CD[pid]={moedasAjustadas:0,contratos:[]};
-  CD[pid].contratos.push({nome:'Contrato '+(CD[pid].contratos.length+1),satA:100,resA:100,conA:100});
+  CD[pid].contratos.push({nome:'Contrato '+(CD[pid].contratos.length+1),satA:10,resA:100,conA:100});
   refreshCartCard(pid);
   recalc();
 }
@@ -972,12 +978,12 @@ function buildDetailHTML(p,r,pool,totalCoins,payment){
       const wCon=n('p_wCon')/100||0.5;
       cd.contratos.forEach((c,ci)=>{
         const base=ma/nc;
-        const satPassed=(c.satA/100)>=sc.patMin;
+        const satPassed=c.satA>=getSatGate();
         let cCoins=0;
         if(satPassed) cCoins=base*(wRes*kpiMult(c.resA)+wCon*kpiMult(c.conA));
         cartRows+=`<tr>
           <td>${c.nome}</td>
-          <td>${c.satA}% <span class="pill ${satPassed?'p-green':'p-red'}">${satPassed?'&#10003;':'&#10007;'}</span></td>
+          <td>${c.satA}/10 <span class="pill ${satPassed?'p-green':'p-red'}">${satPassed?'&#10003;':'&#10007;'}</span></td>
           <td>${c.resA}% / ${c.conA}%</td>
           <td style="font-weight:700">${fCoins(cCoins)}</td>
         </tr>`;
@@ -1061,7 +1067,7 @@ function updatePersonWK(idx, val){
 // ══════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════
-function defaultContratos(){ return [{nome:'Contrato 1',satA:100,resA:100,conA:100}]; }
+function defaultContratos(){ return [{nome:'Contrato 1',satA:10,resA:100,conA:100}]; }
 
 function initCD(){
   E.forEach(p=>{
@@ -1090,53 +1096,108 @@ function showTab(id, btn){
 // ══════════════════════════════════════════
 // EXCEL IMPORT / EXPORT
 // ══════════════════════════════════════════
+function buildXSheet(rows, colWidths){
+  const ws = XLSX.utils.aoa_to_sheet(rows.map(row=> row||[]));
+  if(colWidths) ws['!cols'] = colWidths.map(w=>({wch:w}));
+  return ws;
+}
+
 function exportExcel(){
   if(typeof XLSX==='undefined'){alert('SheetJS n\u00e3o carregado. Verifique a conex\u00e3o.');return;}
   const wb=XLSX.utils.book_new();
 
-  // Sheet 1: Parâmetros
-  const param=[
-    ['Parametro','Valor'],
-    ['LL Minimo (R$ M)', n('p_llMin')],
-    ['LL Realizado (R$ M)', n('p_llReal')],
-    ['% Distribuicao', n('p_dist')],
-    ['PatMin %', n('p_patMin')],
-    ['PatMax %', n('p_patMax')],
-    ['MultMin', n('p_multMin')],
-    ['MultMax', n('p_multMax')],
-    ['Peso Resultado Carteira %', n('p_wRes')],
-    ['Peso Conformidade Carteira %', n('p_wCon')],
+  // ── Aba 1: Instruções ──
+  const instrRows=[
+    ['SIMULADOR RVV \u2014 LIDERAN\u00c7A EQUIPACARE 2026  |  Guia de Preenchimento'],
+    [''],
+    ['SOBRE ESTA PLANILHA'],
+    ['Esta planilha \u00e9 exportada pelo simulador de b\u00f4nus. Edite os valores nas abas indicadas e importe de volta usando o bot\u00e3o \u201cImportar Simula\u00e7\u00e3o\u201d no simulador.'],
+    ['Aten\u00e7\u00e3o: n\u00e3o altere os nomes das abas nem as colunas de ID. Apenas os valores marcados como edit\u00e1veis devem ser modificados.'],
+    [''],
+    ['ABA: POOL E ESCALA'],
+    ['Cont\u00e9m os par\u00e2metros globais do programa de b\u00f4nus.'],
+    ['\u2022  Edite apenas a coluna VALOR.'],
+    ['\u2022  A coluna Descri\u00e7\u00e3o existe para apoio \u2014 n\u00e3o edite.'],
+    [''],
+    ['ABA: ELEG\u00cdVEIS'],
+    ['Lista todos os participantes do programa com seus par\u00e2metros individuais.'],
+    ['\u2022  Pode editar: Nome, Cargo, Moedas-Alvo, Peso Corporativo %, Peso \u00c1rea %, Peso Carteira %.'],
+    ['\u2022  N\u00e3o altere a coluna ID. Para adicionar novo eleg\u00edvel, copie uma linha, crie um ID \u00fanico (sem espa\u00e7os) e preencha os campos.'],
+    ['\u2022  Escopo(s) de \u00c1rea: nomes separados por v\u00edrgula. Ex: GQM, ATE'],
+    ['\u2022  Divis\u00e3o de Escopo: percentuais separados por |. Ex: GQM:50|ATE:50 (devem somar 100)'],
+    [''],
+    ['ABA: KPIS'],
+    ['Registra o atingimento de cada indicador de desempenho.'],
+    ['\u2022  Edite a coluna Atingimento % com os resultados reais (0 a 150).'],
+    ['\u2022  Pode alterar Peso % e se o indicador \u00e9 gatilho (Sim/N\u00e3o).'],
+    ['\u2022  N\u00e3o altere as colunas Grupo e Indicador \u2014 s\u00e3o usadas para identificar cada KPI.'],
+    [''],
+    ['ABA: CARTEIRAS'],
+    ['Registra os contratos de cada Gerente Regional (GQM e ATE).'],
+    ['\u2022  Cada pessoa aparece em uma linha destacada, seguida pelas linhas de seus contratos.'],
+    ['\u2022  Moedas Ajustadas: valor definido pela gest\u00e3o considerando churn/cancelamentos.'],
+    ['\u2022  Para adicionar contrato: inclua nova linha ap\u00f3s os contratos j\u00e1 existentes da pessoa, deixando ID em branco.'],
+    ['\u2022  Satisfa\u00e7\u00e3o: escala 0\u201310. Nota abaixo do m\u00ednimo configurado zera as moedas daquele contrato.'],
   ];
-  E.forEach(p=>{
-    param.push([p.id+'_m', p.m]);
-    param.push([p.id+'_wC', Math.round(p.wC*100)]);
-    param.push([p.id+'_wA', Math.round(p.wA*100)]);
-    param.push([p.id+'_wK', Math.round(p.wK*100)]);
-  });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(param), 'Parametros');
+  const instrWs = buildXSheet(instrRows, [100]);
+  instrWs['!views'] = [{showGridLines: false}];
+  XLSX.utils.book_append_sheet(wb, instrWs, 'Instru\u00e7\u00f5es');
 
-  // Sheet 2: KPI Atingimento
-  const kpiSheet=[['Grupo','KPI_ID','Nome','Atingimento %','Gatilho']];
-  for(const [gk,grp] of Object.entries(G)){
+  // ── Aba 2: Pool e Escala ──
+  const poolRows=[
+    ['Par\u00e2metro', 'Valor', 'Descri\u00e7\u00e3o'],
+    ['LL M\u00ednimo (R$ Milh\u00f5es)',          n('p_llMin'),   'Lucro L\u00edquido m\u00ednimo para ativar o pool de b\u00f4nus'],
+    ['LL Realizado (R$ Milh\u00f5es)',           n('p_llReal'),  'Lucro L\u00edquido efetivamente realizado no per\u00edodo'],
+    ['% Distribui\u00e7\u00e3o do Pool',         n('p_dist'),    'Percentual do delta (LL Realizado \u2212 LL M\u00ednimo) destinado ao pool'],
+    ['% Resultado M\u00ednimo (gatilho)',        n('p_patMin'),  'Atingimento m\u00ednimo (%) para come\u00e7ar a receber moedas'],
+    ['% Resultado M\u00e1ximo (teto)',           n('p_patMax'),  'Teto de atingimento considerado no c\u00e1lculo'],
+    ['Multiplicador no M\u00ednimo',            n('p_multMin'), 'Fator de moedas aplicado ao resultado m\u00ednimo'],
+    ['Multiplicador no M\u00e1ximo',            n('p_multMax'), 'Fator de moedas aplicado ao resultado m\u00e1ximo (teto)'],
+    ['Nota M\u00ednima de Satisfa\u00e7\u00e3o (0-10)', n('p_satGate'), 'Nota m\u00ednima de satisfa\u00e7\u00e3o para validar contrato na carteira'],
+    ['Peso Resultado na Carteira %',         n('p_wRes'),    'Peso do indicador Resultado dentro da avalia\u00e7\u00e3o de carteira'],
+    ['Peso Conformidade na Carteira %',      n('p_wCon'),    'Peso do indicador Conformidade dentro da avalia\u00e7\u00e3o de carteira'],
+  ];
+  XLSX.utils.book_append_sheet(wb, buildXSheet(poolRows, [38,12,55]), 'Pool e Escala');
+
+  // ── Aba 3: Elegíveis ──
+  const eligRows=[
+    ['ID (n\u00e3o alterar)','Nome','Cargo','Moedas-Alvo','Peso Corp %','Peso \u00c1rea %','Escopo(s) de \u00c1rea','Divis\u00e3o de Escopo (Ex: GQM:50|ATE:50)','Peso Carteira %'],
+    ...E.map(p=>{
+      const splitStr=Object.entries(p.areaSplit).map(([k,v])=>k+':'+(v*100).toFixed(0)).join('|');
+      return [p.id, p.nome, p.cargo, p.m, Math.round(p.wC*100), Math.round(p.wA*100), p.sA.join(', ')||'', splitStr||'', Math.round(p.wK*100)];
+    })
+  ];
+  XLSX.utils.book_append_sheet(wb, buildXSheet(eligRows, [18,18,20,12,10,10,20,26,12]), 'Eleg\u00edveis');
+
+  // ── Aba 4: KPIs ──
+  const kpiRows=[['Grupo','Indicador','Peso %','\u00c9 Gatilho? (Sim/N\u00e3o)','Atingimento %']];
+  for(const grp of Object.values(G)){
     grp.kpis.forEach(kpi=>{
-      kpiSheet.push([gk, kpi.id, kpi.nome, KPI[kpi.id]||100, kpi.g?'Sim':'Nao']);
+      kpiRows.push([grp.lbl, kpi.nome, Math.round(kpi.p*100), kpi.g?'Sim':'N\u00e3o', KPI[kpi.id]||100]);
     });
   }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kpiSheet), 'Atingimento_KPIs');
+  XLSX.utils.book_append_sheet(wb, buildXSheet(kpiRows, [14,32,8,18,14]), 'KPIs');
 
-  // Sheet 3: Carteiras
-  const cartSheet=[['Pessoa_ID','Moedas Ajustadas','Contrato','Satisfacao %','Resultado %','Conformidade %']];
+  // ── Aba 5: Carteiras ──
+  const cartRows=[['ID Pessoa (n\u00e3o alterar)','Nome','Cargo','Moedas Ajustadas (gest\u00e3o)','Nome do Contrato','Satisfa\u00e7\u00e3o (0-10)','Resultado %','Conformidade %']];
   E.filter(p=>p.wK>0).forEach(p=>{
-    const cd=CD[p.id];
-    if(!cd) return;
-    cartSheet.push([p.id, cd.moedasAjustadas,'','','','']);
+    const cd=CD[p.id]||{moedasAjustadas:Math.round(p.m*p.wK),contratos:[]};
+    cartRows.push([p.id, p.nome, p.cargo, cd.moedasAjustadas, '', '', '', '']);
     cd.contratos.forEach(c=>{
-      cartSheet.push([p.id,'', c.nome, c.satA, c.resA, c.conA]);
+      cartRows.push(['', '', '', '', c.nome, c.satA, c.resA, c.conA]);
     });
   });
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(cartSheet), 'Carteiras');
+  XLSX.utils.book_append_sheet(wb, buildXSheet(cartRows, [20,18,18,22,24,14,11,13]), 'Carteiras');
 
-  XLSX.writeFile(wb, 'simulador_rvv_equipacare.xlsx');
+  try {
+    const wbOut = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+    const blob = new Blob([wbOut], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'simulador_rvv_equipacare.xlsx';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 200);
+  } catch(err){ alert('Erro ao salvar: '+err.message); }
 }
 
 function importExcel(){
@@ -1152,50 +1213,98 @@ function handleImport(ev){
     try{
       const wb=XLSX.read(e.target.result,{type:'array'});
 
-      // Parametros
-      const ps=XLSX.utils.sheet_to_json(wb.Sheets['Parametros'],{header:1});
-      const pm={};
-      ps.slice(1).forEach(r=>{ if(r[0]) pm[r[0]]=r[1]; });
-      ['p_llMin','p_llReal','p_dist','p_patMin','p_patMax','p_multMin','p_multMax','p_wRes','p_wCon'].forEach(id=>{
-        const lblMap={'p_llMin':'LL Minimo (R$ M)','p_llReal':'LL Realizado (R$ M)','p_dist':'% Distribuicao',
-          'p_patMin':'PatMin %','p_patMax':'PatMax %','p_multMin':'MultMin','p_multMax':'MultMax',
-          'p_wRes':'Peso Resultado Carteira %','p_wCon':'Peso Conformidade Carteira %'};
-        const el=document.getElementById(id);
-        if(el && pm[lblMap[id]]!==undefined) el.value=pm[lblMap[id]];
-      });
-      E.forEach(p=>{
-        if(pm[p.id+'_m']!==undefined) p.m=+pm[p.id+'_m'];
-        if(pm[p.id+'_wC']!==undefined) p.wC=+pm[p.id+'_wC']/100;
-        if(pm[p.id+'_wA']!==undefined) p.wA=+pm[p.id+'_wA']/100;
-        if(pm[p.id+'_wK']!==undefined) p.wK=+pm[p.id+'_wK']/100;
-      });
+      // ── Aba Pool e Escala ──
+      const poolSheet=wb.Sheets['Pool e Escala'];
+      if(poolSheet){
+        const ps=XLSX.utils.sheet_to_json(poolSheet,{header:1});
+        const pm={};
+        ps.slice(1).forEach(r=>{ if(r[0]!==undefined && r[0]!=='') pm[String(r[0])]=r[1]; });
+        const poolMap={
+          'LL M\u00ednimo (R$ Milh\u00f5es)':'p_llMin',
+          'LL Realizado (R$ Milh\u00f5es)':'p_llReal',
+          '% Distribui\u00e7\u00e3o do Pool':'p_dist',
+          '% Resultado M\u00ednimo (gatilho)':'p_patMin',
+          '% Resultado M\u00e1ximo (teto)':'p_patMax',
+          'Multiplicador no M\u00ednimo':'p_multMin',
+          'Multiplicador no M\u00e1ximo':'p_multMax',
+          'Nota M\u00ednima de Satisfa\u00e7\u00e3o (0-10)':'p_satGate',
+          'Peso Resultado na Carteira %':'p_wRes',
+          'Peso Conformidade na Carteira %':'p_wCon',
+        };
+        for(const [lbl,id] of Object.entries(poolMap)){
+          const el=document.getElementById(id);
+          if(el && pm[lbl]!==undefined) el.value=pm[lbl];
+        }
+      }
 
-      // KPI Atingimento
-      const ks=XLSX.utils.sheet_to_json(wb.Sheets['Atingimento_KPIs'],{header:1});
-      ks.slice(1).forEach(r=>{
-        if(r[1]) KPI[r[1]]=+r[3]||100;
-        if(r[1] && r[4]){
-          for(const grp of Object.values(G)){
-            const kpi=grp.kpis.find(k=>k.id===r[1]);
-            if(kpi) kpi.g=(r[4]==='Sim');
+      // ── Aba Elegíveis ──
+      const eligSheet=wb.Sheets['Eleg\u00edveis'];
+      if(eligSheet){
+        const es=XLSX.utils.sheet_to_json(eligSheet,{header:1});
+        es.slice(1).forEach(r=>{
+          if(!r[0]) return;
+          const pid=String(r[0]);
+          let p=E.find(x=>x.id===pid);
+          if(!p){
+            // novo elegível
+            p={id:pid,nome:'',cargo:'',atu:'',m:200,wC:0.2,wA:0,sA:[],areaSplit:{},wK:0};
+            E.push(p);
           }
-        }
-      });
+          if(r[1]!==undefined) p.nome=String(r[1]);
+          if(r[2]!==undefined) p.cargo=String(r[2]);
+          if(r[3]!==undefined) p.m=+r[3]||p.m;
+          if(r[4]!==undefined) p.wC=(+r[4]||0)/100;
+          if(r[5]!==undefined) p.wA=(+r[5]||0)/100;
+          if(r[6]!==undefined) p.sA=r[6]?String(r[6]).split(',').map(s=>s.trim()).filter(Boolean):[];
+          if(r[7]!==undefined && r[7]!==''){
+            p.areaSplit={};
+            String(r[7]).split('|').forEach(part=>{
+              const [k,v]=part.split(':');
+              if(k&&v) p.areaSplit[k.trim()]=(+v||0)/100;
+            });
+          }
+          if(r[8]!==undefined) p.wK=(+r[8]||0)/100;
+        });
+      }
 
-      // Carteiras
-      const cs=XLSX.utils.sheet_to_json(wb.Sheets['Carteiras'],{header:1});
-      let curPid=null;
-      cs.slice(1).forEach(r=>{
-        if(!r[0]) return;
-        if(r[1]!=='' && r[1]!==undefined && r[2]===''){
-          curPid=r[0];
-          CD[curPid]={moedasAjustadas:+r[1]||0,contratos:[]};
-        } else if(r[2]){
-          if(!curPid) curPid=r[0];
-          if(!CD[curPid]) CD[curPid]={moedasAjustadas:0,contratos:[]};
-          CD[curPid].contratos.push({nome:r[2],satA:+r[3]||100,resA:+r[4]||100,conA:+r[5]||100});
-        }
-      });
+      // ── Aba KPIs ──
+      const kpiSheet=wb.Sheets['KPIs'];
+      if(kpiSheet){
+        const ks=XLSX.utils.sheet_to_json(kpiSheet,{header:1});
+        ks.slice(1).forEach(r=>{
+          const grpLbl=String(r[0]||'');
+          const kpiNome=String(r[1]||'');
+          const grp=Object.values(G).find(g=>g.lbl===grpLbl);
+          if(!grp) return;
+          const kpi=grp.kpis.find(k=>k.nome===kpiNome);
+          if(!kpi) return;
+          if(r[2]!==undefined) kpi.p=(+r[2]||0)/100;
+          if(r[3]!==undefined) kpi.g=(String(r[3]).trim()==='Sim');
+          if(r[4]!==undefined) KPI[kpi.id]=+r[4]||100;
+        });
+      }
+
+      // ── Aba Carteiras ──
+      const cartSheet=wb.Sheets['Carteiras'];
+      if(cartSheet){
+        const cs=XLSX.utils.sheet_to_json(cartSheet,{header:1});
+        let curPid=null;
+        cs.slice(1).forEach(r=>{
+          // linha de pessoa: col A tem ID, col D tem moedas ajustadas, col E vazia
+          if(r[0]!==undefined && r[0]!==''){
+            curPid=String(r[0]);
+            CD[curPid]={moedasAjustadas:+r[3]||0,contratos:[]};
+          } else if((r[4]!==undefined && r[4]!=='') && curPid){
+            // linha de contrato: col E tem nome do contrato
+            CD[curPid].contratos.push({
+              nome:String(r[4]),
+              satA:+r[5]||10,
+              resA:+r[6]||100,
+              conA:+r[7]||100
+            });
+          }
+        });
+      }
 
       // Rebuild UI
       buildEligTable();
